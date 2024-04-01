@@ -54,6 +54,7 @@ func mapod_rotate(rotate_vector: Vector2):
 
 
 func fw_thrust():
+	print("fw_thrust")
 	var delta = get_physics_process_delta_time()
 	linear_velocity.z += (acceleration * delta)
 

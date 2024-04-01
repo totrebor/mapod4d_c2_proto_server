@@ -14,6 +14,7 @@ extends Node3D
 
 
 # ----- signals
+signal mapod_position_updated(_peer_id)
 
 # ----- enums
 
@@ -24,9 +25,10 @@ extends Node3D
 # ----- public variables
 
 # ----- private variables
+var _position_updated = false
 
 # ----- onready variables
-@onready var mapod = $Mapod
+@onready var _mapod = $Mapod
 
 # ----- optional built-in virtual _init method
 
@@ -56,7 +58,8 @@ func _unhandled_input(event):
 			#rotate_vector.x = -1
 		#mapod.mapod_rotate(rotate_vector)
 
-func _physics_process(delta):
+
+func _physics_process(_delta):
 	#if Input.is_action_pressed("mapod_w"):
 		#mapod.fw_thrust()
 	#if Input.is_action_pressed("mapod_s"):
@@ -69,7 +72,10 @@ func _physics_process(delta):
 		#mapod.up_thrust()
 	#if Input.is_action_pressed("mapod_space"):
 		#mapod.dw_thrust()
-	pass
+	if _position_updated:
+		emit_signal("mapod_position_updated", self.name)
+		_position_updated = false
+
 
 # ----- public methods
 @rpc("any_peer", "call_local")
@@ -77,16 +83,18 @@ func setup_multiplayer(player_id):
 	pass
 
 
-@rpc("any_peer", "call_remote")
-func fw_thrust(player_name):
-	if player_name == name:
-		mapod.fw_thrust()
+func fw_thrust():
+	_mapod.fw_thrust()
+	await get_tree().create_timer(get_physics_process_delta_time()).timeout
+	_position_updated = true
 
+func bk_thrust():
+	_mapod.bk_thrust()
+	await get_tree().create_timer(get_physics_process_delta_time()).timeout
+	_position_updated = true
 
-@rpc("any_peer", "call_remote")
-func bk_thrust(player_name):
-	if player_name == name:
-		mapod.bk_thrust()
+func get_mapod_position():
+	return _mapod.position
 
 # ----- private methods
 
