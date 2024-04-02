@@ -26,7 +26,7 @@ enum PLAYER_EVENT_ACTION {
 
 # ----- constants
 const PORT = 9999
-const MAX_PEER_DELAY_MS = 0
+const MAX_PEER_DELAY_MS = 100
 const SERVER_ELAB_TIME_MS = 0
 
 # ----- exported variables
@@ -110,7 +110,7 @@ func _process(delta):
 	
 # Called every 16,6666 ms
 func _physics_process(delta):
-	_current_tick = Time.get_ticks_msec() - delta
+	_current_tick = Time.get_ticks_msec() - (delta + _server_send_timer_sec)
 	_elab_tick(_current_tick)
 
 
@@ -213,6 +213,7 @@ func _on_peer_disconnect(peer_id):
 
 
 func _on_mapod_position_updated(peer_id):
+	print("_on_mapod_position_updated")
 	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
 	var player_node = get_node(player_node_name)
 	_metaverese_status.drones[str(peer_id)] = {
@@ -220,7 +221,7 @@ func _on_mapod_position_updated(peer_id):
 	}
 
 
-func _elab_tick(current_tick):
+func _old_elab_tick(current_tick):
 	if current_tick > _max_peer_delay_ms:
 		var result = _events_buffer.pop(current_tick - _max_peer_delay_ms)
 		if result.is_empty() == false:
@@ -228,6 +229,15 @@ func _elab_tick(current_tick):
 				match mp_event.type:
 					MPEVENT_TYPE.DRONE:
 						drone_event(mp_event)
+
+
+func _elab_tick(current_tick):
+	if current_tick > _max_peer_delay_ms:
+		var mp_event = _events_buffer.pop_single()
+		if mp_event != null:
+			match mp_event.type:
+				MPEVENT_TYPE.DRONE:
+					drone_event(mp_event)
 
 
 func drone_event(mp_event):
@@ -241,4 +251,5 @@ func drone_event(mp_event):
 			send_server_event.rpc_id(mp_event.peer_id, mp_event)
 		PLAYER_EVENT_ACTION.BK_THRUST:
 			player_node.bk_thrust()
+			send_server_event.rpc_id(mp_event.peer_id, mp_event)
 

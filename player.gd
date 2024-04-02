@@ -26,6 +26,7 @@ signal mapod_position_updated(_peer_id)
 
 # ----- private variables
 var _position_updated = false
+var _velocity = null
 
 # ----- onready variables
 @onready var _mapod = $Mapod
@@ -36,7 +37,9 @@ var _position_updated = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	_mapod.position_updated.connect(_on_position_updated)
 	pass # Replace with function body.
+	
 
 # ----- remaining built-in virtual methods
 
@@ -59,7 +62,8 @@ func _unhandled_input(event):
 		#mapod.mapod_rotate(rotate_vector)
 
 
-func _physics_process(_delta):
+func _physics_process(delta):
+	pass
 	#if Input.is_action_pressed("mapod_w"):
 		#mapod.fw_thrust()
 	#if Input.is_action_pressed("mapod_s"):
@@ -72,9 +76,7 @@ func _physics_process(_delta):
 		#mapod.up_thrust()
 	#if Input.is_action_pressed("mapod_space"):
 		#mapod.dw_thrust()
-	if _position_updated:
-		emit_signal("mapod_position_updated", self.name)
-		_position_updated = false
+
 
 
 # ----- public methods
@@ -85,20 +87,25 @@ func setup_multiplayer(player_id):
 
 func fw_thrust():
 	_mapod.fw_thrust()
-	await get_tree().create_timer(get_physics_process_delta_time()).timeout
-	_position_updated = true
+	#await get_tree().create_timer(1).timeout
+	#_position_updated = true
+	pass
+
 
 func bk_thrust():
 	_mapod.bk_thrust()
-	await get_tree().create_timer(get_physics_process_delta_time()).timeout
-	_position_updated = true
+	#await get_tree().create_timer(1).timeout
+	#_position_updated = true
+	pass
+
 
 func get_mapod_position():
 	return _mapod.position
 
 # ----- private methods
 
-
-
+func _on_position_updated():
+	print("position_updated")
+	emit_signal("mapod_position_updated", self.name)
 
 

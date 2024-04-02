@@ -43,6 +43,13 @@ func pop(current_tick):
 	return result
 
 
+func pop_single():
+	var result = null
+	if _internal_buffer.is_empty() == false:
+		result = _internal_buffer.pop_front()
+	return result
+
+
 func print():
 	var b_size = len(_internal_buffer)
 	for index in range(0 , b_size):

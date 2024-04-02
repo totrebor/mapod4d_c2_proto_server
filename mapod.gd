@@ -3,7 +3,7 @@
 # class_name
 
 # extends
-extends RigidBody3D
+extends CharacterBody3D
 
 ## A brief description of your script.
 ##
@@ -14,6 +14,7 @@ extends RigidBody3D
 
 
 # ----- signals
+signal position_updated()
 
 # ----- enums
 
@@ -26,6 +27,7 @@ extends RigidBody3D
 # ----- public variables
 
 # ----- private variables
+var _velocity = null
 
 
 # ----- onready variables
@@ -46,6 +48,16 @@ func _process(delta):
 	pass # Replace with function body.
 
 
+func _physics_process(delta):
+	if _velocity != null:
+		var velocity = transform.basis * _velocity
+		_velocity = null
+		var collision = move_and_collide(velocity * delta)
+		if collision:
+			print("I collided with ", collision.get_collider().name)
+		call_deferred("emit_signal", "position_updated")
+
+
 # ----- public methods
 func mapod_rotate(rotate_vector: Vector2):
 	#rotate_y(-event.relative.x * mouse_sensitivity)
@@ -55,33 +67,35 @@ func mapod_rotate(rotate_vector: Vector2):
 
 func fw_thrust():
 	print("fw_thrust")
-	var delta = get_physics_process_delta_time()
-	linear_velocity.z += (acceleration * delta)
+	#var delta = get_physics_process_delta_time()
+	#linear_velocity.z += (acceleration * delta)
+	_velocity = Vector3(0, 0, 1)
 
 
 func bk_thrust():
 	var delta = get_physics_process_delta_time()
-	linear_velocity.z += (-acceleration * delta)
+	#linear_velocity.z += (-acceleration * delta)
+	_velocity = Vector3(0, 0, -1)
 
 
 func lf_thrust():
 	var delta = get_physics_process_delta_time()
-	linear_velocity.x += (acceleration * delta)
+	#linear_velocity.x += (acceleration * delta)
 
 
 func rg_thrust():
 	var delta = get_physics_process_delta_time()
-	linear_velocity.x += (-acceleration * delta)
+	#linear_velocity.x += (-acceleration * delta)
 
 
 func up_thrust():
 	var delta = get_physics_process_delta_time()
-	linear_velocity.y += (acceleration * delta)
+	#linear_velocity.y += (acceleration * delta)
 
 
 func dw_thrust():
 	var delta = get_physics_process_delta_time()
-	linear_velocity.y += (-acceleration * delta)
+	#linear_velocity.y += (-acceleration * delta)
 
 
 # ----- private methods
