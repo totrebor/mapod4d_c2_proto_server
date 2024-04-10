@@ -50,7 +50,7 @@ func _process(delta):
 
 func _physics_process(delta):
 	if _velocity != null:
-		var velocity = transform.basis * _velocity
+		var velocity = _velocity
 		_velocity = null
 		var collision = move_and_collide(velocity * delta)
 		if collision:
@@ -69,7 +69,7 @@ func fw_thrust():
 	print("fw_thrust")
 	#var delta = get_physics_process_delta_time()
 	#linear_velocity.z += (acceleration * delta)
-	_velocity = Vector3(0, 0, 1)
+	_velocity = transform.basis * Vector3(0, 0, 1)
 
 
 func bk_thrust():
