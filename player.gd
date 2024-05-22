@@ -25,8 +25,8 @@ signal mapod_position_updated(_peer_id)
 # ----- public variables
 
 # ----- private variables
-var _position_updated = false
-var _velocity = null
+#var _position_updated = false
+#var _velocity = null
 
 # ----- onready variables
 @onready var _mapod = $Mapod
@@ -44,25 +44,11 @@ func _ready():
 # ----- remaining built-in virtual methods
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	pass # Replace with function body.
 
 
-func _unhandled_input(event):
-	pass
-	#if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		##rotate_y(-event.relative.x * mouse_sensitivity)
-		##$Camera3D.rotate_x(-event.relative.y * mouse_sensitivity)
-		##$Camera3D.rotation.x = clampf($Camera3D.rotation.x, -deg_to_rad(70), deg_to_rad(70))
-		#var rotate_vector: Vector2
-		#if event.relative.y > 0:
-			#rotate_vector.x = 1
-		#else:
-			#rotate_vector.x = -1
-		#mapod.mapod_rotate(rotate_vector)
-
-
-func _physics_process(delta):
+func _physics_process(_delta):
 	pass
 	#if Input.is_action_pressed("mapod_w"):
 		#mapod.fw_thrust()
@@ -81,7 +67,7 @@ func _physics_process(delta):
 
 # ----- public methods
 @rpc("any_peer", "call_local")
-func setup_multiplayer(player_id):
+func setup_multiplayer(_player_id_rpc):
 	pass
 
 

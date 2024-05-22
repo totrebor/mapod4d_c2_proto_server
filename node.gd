@@ -58,11 +58,11 @@ var _max_peer_delay_ms = 0
 var _server_send_timer_sec = 0
 
 
-var _physics_process_delta = 0
-var _old_tick = 0
+#var _physics_process_delta = 0
+#var _old_tick = 0
 
-var _tick = 0
-var _sub_tick = 0
+#var _tick = 0
+#var _sub_tick = 0
 
 
 # ----- onready variables
@@ -81,6 +81,7 @@ func _ready():
 	print("_server_send_timer_sec " + str(_server_send_timer_sec))
 
 	var error = peer.create_server(PORT)
+	print(error)
 	# where can we call free ?
 	_events_buffer = MapodInputBuffer.new(1000)
 	multiplayer.multiplayer_peer = peer
@@ -105,7 +106,7 @@ func _ready():
 # ----- remaining built-in virtual methods
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	pass # Replace with function body.
 	
 # Called every 16,6666 ms
@@ -117,7 +118,7 @@ func _physics_process(delta):
 # ----- public methods
 ## send server name
 @rpc("authority", "call_remote", "unreliable")
-func server_name(peer_id, _remote_server_name):
+func server_name(_peer_id_rpc, _remote_server_name_rpc):
 	pass
 
 
@@ -130,19 +131,19 @@ func user_auth_request(peer_id, _login, _password):
 
 ## authentication error
 @rpc("authority", "call_remote")
-func auth_error(peer_id):
+func auth_error(_peer_id_rpc):
 	pass
 
 
 ## authentication confirmed
 @rpc("authority", "call_remote")
-func auth_confirmed(peer_id, auth_token):
+func auth_confirmed(_peer_id_rpc, _auth_token_rpc):
 	pass
 
 
 # create player
 @rpc("any_peer", "call_remote")
-func start_game(peer_id, auth_token):
+func start_game(peer_id, _auth_token):
 	print("start_game " + str(peer_id))
 	$PlayerSpawnerArea.spawn(peer_id)
 	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
@@ -156,7 +157,7 @@ func start_game(peer_id, auth_token):
 
 # send ready to go
 @rpc("authority", "call_remote")
-func ready_to_go(peer_id):
+func ready_to_go(_peer_id_rpc):
 	pass
 
 
@@ -168,12 +169,12 @@ func ticks_sync_request(peer_id, client_tick):
 
 ## ticks sync answer
 @rpc("authority", "call_remote", "reliable")
-func ticks_sync(client_tick, server_tick):
+func ticks_sync(_client_tick_rpc, _server_tick_rpc):
 	pass
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func send_player_event(peer_id, event):
+func send_player_event(_peer_id, event):
 	print("send_event")
 	# push event in the buffer
 	var current_tick = _current_tick
@@ -192,12 +193,17 @@ func send_player_event(peer_id, event):
 
 
 @rpc("authority", "call_remote", "reliable")
-func send_server_event(event):
+func send_answer_player_event(_peer_id_rpc, _event_rpc):
 	pass
 
 
 @rpc("authority", "call_remote", "reliable")
-func send_metaverse_status(_metaverese_status):
+func send_server_event(_event_rpc):
+	pass
+
+
+@rpc("authority", "call_remote", "reliable")
+func send_metaverse_status(_metaverese_status_rpc):
 	pass
 
 
