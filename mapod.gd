@@ -21,10 +21,12 @@ signal position_updated()
 # ----- constants
 
 # ----- exported variables
-@export var acceleration = 20.0
 @export var mouse_sensitivity = 0.01
+@export var defaultSpeed = 1.0
 
 # ----- public variables
+var thrust_event_buffer
+var rotate_event_buffer
 
 # ----- private variables
 var _velocity = null
@@ -39,7 +41,8 @@ var _velocity = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	thrust_event_buffer = MapodEventBuffer.new(1000)
+	rotate_event_buffer = MapodEventBuffer.new(1000)
 
 # ----- remaining built-in virtual methods
 
@@ -49,13 +52,27 @@ func _process(_delta):
 
 
 func _physics_process(delta):
-	if _velocity != null:
-		var local_velocity = _velocity
-		_velocity = null
-		var collision = move_and_collide(local_velocity * delta)
-		if collision:
-			print("I collided with ", collision.get_collider().name)
-		call_deferred("emit_signal", "position_updated")
+	if !thrust_event_buffer.is_empty():
+		var current_event = thrust_event_buffer.get_event()
+		var thrust_time = 0.4
+		var direction = transform.basis * current_event["input"]
+		var speed = direction * defaultSpeed
+		var space = speed * thrust_time
+		move_and_collide(space)
+		var event = {
+			"T": current_event["T"],
+			"ME": "position",
+			"input": position
+		}
+		# send position event to player
+	
+	#if _velocity != null:
+		#var local_velocity = _velocity
+		#_velocity = null
+		#var collision = move_and_collide(local_velocity * delta)
+		#if collision:
+			#print("I collided with ", collision.get_collider().name)
+		#call_deferred("emit_signal", "position_updated")
 
 
 # ----- public methods

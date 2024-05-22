@@ -36,7 +36,7 @@ const SERVER_ELAB_TIME_MS = 0
 var peer = ENetMultiplayerPeer.new()
 
 # ----- private variables
-var _metaverese_status = {
+var _metaverse_status = {
 	'tick' : 0,
 	'planets': {
 		'test': {
@@ -91,10 +91,10 @@ func _ready():
 	add_child(sync_timer)
 	sync_timer.timeout.connect(func():
 		var current_tick = Time.get_ticks_msec()
-		var current_hash = _metaverese_status.hash()
+		var current_hash = _metaverse_status.hash()
 		if _metaverese_last_hash != current_hash:
 			_metaverese_last_hash = current_hash
-			var metaverse_status = _metaverese_status.duplicate(true)
+			var metaverse_status = _metaverse_status.duplicate(true)
 			metaverse_status.tick = current_tick
 			send_metaverse_status.rpc(metaverse_status)
 	)
@@ -148,7 +148,7 @@ func start_game(peer_id, _auth_token):
 	$PlayerSpawnerArea.spawn(peer_id)
 	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
 	var player_node = get_node(player_node_name)
-	_metaverese_status.drones[str(peer_id)] = {
+	_metaverse_status.drones[str(peer_id)] = {
 		"position": player_node.get_mapod_position()
 	}
 	player_node.mapod_position_updated.connect(_on_mapod_position_updated)
@@ -175,7 +175,7 @@ func ticks_sync(_client_tick_rpc, _server_tick_rpc):
 
 @rpc("any_peer", "call_remote", "reliable")
 func send_player_event(_peer_id, event):
-	print("send_event")
+	print("send_player_event")
 	# push event in the buffer
 	var current_tick = _current_tick
 	var last_tick = current_tick - _max_peer_delay_ms
@@ -187,14 +187,9 @@ func send_player_event(_peer_id, event):
 				" last_tick " + str(last_tick) +
 				" event_tick " + str(event.T) +
 				" diff " + str(_current_tick - event.T) +
-				" lterncy_peer " +  str(event.L))
+				" laterncy_peer " +  str(event.L))
 		_events_buffer.push(event, last_tick)
 		_events_buffer.print()
-
-
-@rpc("authority", "call_remote", "reliable")
-func send_answer_player_event(_peer_id_rpc, _event_rpc):
-	pass
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -215,6 +210,7 @@ func _on_peer_connect(peer_id):
 
 func _on_peer_disconnect(peer_id):
 	print("disconnect " + str(peer_id))
+	_metaverse_status.erase(str(peer_id))
 	$PlayerSpawnerArea.kill(peer_id)
 
 
@@ -222,7 +218,7 @@ func _on_mapod_position_updated(peer_id):
 	print("_on_mapod_position_updated")
 	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
 	var player_node = get_node(player_node_name)
-	_metaverese_status.drones[str(peer_id)] = {
+	_metaverse_status.drones[str(peer_id)] = {
 		"position": player_node.get_mapod_position()
 	}
 
@@ -246,16 +242,22 @@ func _elab_tick(current_tick):
 					drone_event(mp_event)
 
 
-func drone_event(mp_event):
-	print(mp_event)
+func drone_event(mapod_event):
+	print(mapod_event)
 	var player_node_name = (
-			"PlayerSpawnerArea/" + str(mp_event.peer_id))
-	var player_node = get_node(player_node_name)
-	match mp_event.action:
-		PLAYER_EVENT_ACTION.FW_THRUST:
-			player_node.fw_thrust()
-			send_server_event.rpc_id(mp_event.peer_id, mp_event)
-		PLAYER_EVENT_ACTION.BK_THRUST:
-			player_node.bk_thrust()
-			send_server_event.rpc_id(mp_event.peer_id, mp_event)
+			"PlayerSpawnerArea/" + str(mapod_event.peer_id))
+	var player_node = get_node_or_null(player_node_name)
+	if player_node != null:
+		if mapod_event["ME"] == "thrust":
+			player_node.push_thrust_event(mapod_event)
+	
+	# debug start
+	#match mp_event.action:
+		#PLAYER_EVENT_ACTION.FW_THRUST:
+			#player_node.fw_thrust()
+			#send_server_event.rpc_id(mp_event.peer_id, mp_event)
+		#PLAYER_EVENT_ACTION.BK_THRUST:
+			#player_node.bk_thrust()
+			#send_server_event.rpc_id(mp_event.peer_id, mp_event)
+	# debug end
 

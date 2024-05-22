@@ -71,18 +71,14 @@ func setup_multiplayer(_player_id_rpc):
 	pass
 
 
-func fw_thrust():
-	_mapod.fw_thrust()
-	#await get_tree().create_timer(1).timeout
-	#_position_updated = true
-	pass
+#func bk_thrust():
+	#_mapod.bk_thrust()
+	##await get_tree().create_timer(1).timeout
+	##_position_updated = true
+	#pass
 
-
-func bk_thrust():
-	_mapod.bk_thrust()
-	#await get_tree().create_timer(1).timeout
-	#_position_updated = true
-	pass
+func push_thrust_event(mapod_event):
+	_mapod.thrust_event_buffer.push(mapod_event, 0)
 
 
 func get_mapod_position():
