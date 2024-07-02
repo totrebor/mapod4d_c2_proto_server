@@ -14,6 +14,10 @@ extends Node3D
 
 
 # ----- signals
+# old
+signal mapod_position_updated(_peer_id)
+signal mapod_event_confirmed(mp_event)
+# new
 
 # ----- enums
 
@@ -24,9 +28,11 @@ extends Node3D
 # ----- public variables
 
 # ----- private variables
+#var _position_updated = false
+#var _velocity = null
 
 # ----- onready variables
-@onready var mapod = $Mapod
+@onready var _mapod = $Mapod
 
 # ----- optional built-in virtual _init method
 
@@ -34,29 +40,19 @@ extends Node3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	_mapod.position_updated.connect(_on_position_updated)
+	_mapod.mapod_event_confirmed.connect(_on_mapod_event_confirmed)
+
 
 # ----- remaining built-in virtual methods
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	pass # Replace with function body.
 
 
-func _unhandled_input(event):
+func _physics_process(_delta):
 	pass
-	#if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		##rotate_y(-event.relative.x * mouse_sensitivity)
-		##$Camera3D.rotate_x(-event.relative.y * mouse_sensitivity)
-		##$Camera3D.rotation.x = clampf($Camera3D.rotation.x, -deg_to_rad(70), deg_to_rad(70))
-		#var rotate_vector: Vector2
-		#if event.relative.y > 0:
-			#rotate_vector.x = 1
-		#else:
-			#rotate_vector.x = -1
-		#mapod.mapod_rotate(rotate_vector)
-
-func _physics_process(delta):
 	#if Input.is_action_pressed("mapod_w"):
 		#mapod.fw_thrust()
 	#if Input.is_action_pressed("mapod_s"):
@@ -69,28 +65,36 @@ func _physics_process(delta):
 		#mapod.up_thrust()
 	#if Input.is_action_pressed("mapod_space"):
 		#mapod.dw_thrust()
-	pass
+
 
 # ----- public methods
 @rpc("any_peer", "call_local")
-func setup_multiplayer(player_id):
+func setup_multiplayer(_player_id_rpc):
 	pass
 
 
-@rpc("any_peer", "call_remote")
-func fw_thrust(player_name):
-	if player_name == name:
-		mapod.fw_thrust()
+#func bk_thrust():
+	#_mapod.bk_thrust()
+	##await get_tree().create_timer(1).timeout
+	##_position_updated = true
+	#pass
 
 
-@rpc("any_peer", "call_remote")
-func bk_thrust(player_name):
-	if player_name == name:
-		mapod.bk_thrust()
+func push_thrust_event(mapod_event):
+	_mapod.thrust_event_buffer.push(mapod_event, 0)
+
+
+func get_mapod_position():
+	return _mapod.position
 
 # ----- private methods
 
 
+func _on_position_updated():
+	print("position_updated")
+	emit_signal("mapod_position_updated", self.name)
 
 
-
+func _on_mapod_event_confirmed(mp_event):
+	print("position_updated " + str(mp_event))
+	# MANDARE AL CLIENT
