@@ -187,7 +187,7 @@ func send_player_event(_peer_id, event):
 				" last_tick " + str(last_tick) +
 				" event_tick " + str(event.T) +
 				" diff " + str(_current_tick - event.T) +
-				" laterncy_peer " +  str(event.L))
+				" latency_peer " +  str(event.L))
 		_events_buffer.push(event, last_tick)
 		_events_buffer.print()
 
@@ -228,29 +228,29 @@ func _old_elab_tick(current_tick):
 		var result = _events_buffer.pop(current_tick - _max_peer_delay_ms)
 		if result.is_empty() == false:
 			for mp_event in result:
-				match mp_event.type:
-					MPEVENT_TYPE.DRONE:
-						drone_event(mp_event)
+				if MPEventBuilder.is_drone(mp_event):
+					drone_event(mp_event)
 
 
 func _elab_tick(current_tick):
 	if current_tick > _max_peer_delay_ms:
 		var mp_event = _events_buffer.pop_single()
 		if mp_event != null:
-			match mp_event.type:
-				MPEVENT_TYPE.DRONE:
-					drone_event(mp_event)
+			if MPEventBuilder.is_drone(mp_event):
+				drone_event(mp_event)
 
 
-func drone_event(mapod_event):
-	print(mapod_event)
+# push drone event in the dcorrect player
+func drone_event(mp_event):
+	print("drone_event " + str(mp_event))
 	var player_node_name = (
-			"PlayerSpawnerArea/" + str(mapod_event.peer_id))
+			"PlayerSpawnerArea/" + MPEventBuilder.gain_peer_id(mp_event))
 	var player_node = get_node_or_null(player_node_name)
 	if player_node != null:
-		if mapod_event["ME"] == "thrust":
-			player_node.push_thrust_event(mapod_event)
-	
+		if MPEventBuilder.is_drone_trust(mp_event):
+			player_node.push_thrust_event(mp_event)
+
+
 	# debug start
 	#match mp_event.action:
 		#PLAYER_EVENT_ACTION.FW_THRUST:

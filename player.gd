@@ -14,7 +14,10 @@ extends Node3D
 
 
 # ----- signals
+# old
 signal mapod_position_updated(_peer_id)
+signal mapod_event_confirmed(mp_event)
+# new
 
 # ----- enums
 
@@ -38,8 +41,8 @@ signal mapod_position_updated(_peer_id)
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	_mapod.position_updated.connect(_on_position_updated)
-	pass # Replace with function body.
-	
+	_mapod.mapod_event_confirmed.connect(_on_mapod_event_confirmed)
+
 
 # ----- remaining built-in virtual methods
 
@@ -64,7 +67,6 @@ func _physics_process(_delta):
 		#mapod.dw_thrust()
 
 
-
 # ----- public methods
 @rpc("any_peer", "call_local")
 func setup_multiplayer(_player_id_rpc):
@@ -77,6 +79,7 @@ func setup_multiplayer(_player_id_rpc):
 	##_position_updated = true
 	#pass
 
+
 func push_thrust_event(mapod_event):
 	_mapod.thrust_event_buffer.push(mapod_event, 0)
 
@@ -86,8 +89,12 @@ func get_mapod_position():
 
 # ----- private methods
 
+
 func _on_position_updated():
 	print("position_updated")
 	emit_signal("mapod_position_updated", self.name)
 
 
+func _on_mapod_event_confirmed(mp_event):
+	print("position_updated " + str(mp_event))
+	# MANDARE AL CLIENT

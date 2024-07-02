@@ -14,7 +14,10 @@ extends CharacterBody3D
 
 
 # ----- signals
+# old
 signal position_updated()
+# new
+signal mapod_event_confirmed(event)
 
 # ----- enums
 
@@ -54,8 +57,9 @@ func _process(_delta):
 func _physics_process(delta):
 	if !thrust_event_buffer.is_empty():
 		var current_event = thrust_event_buffer.get_event()
+		var data_input = MPEventBuilder.gain_input(current_event)
 		var thrust_time = 0.4
-		var direction = transform.basis * current_event["input"]
+		var direction = transform.basis * data_input.v.d
 		var speed = direction * defaultSpeed
 		var space = speed * thrust_time
 		move_and_collide(space)
@@ -65,7 +69,9 @@ func _physics_process(delta):
 			"input": position
 		}
 		# send position event to player
-	
+		emit_signal("mapod_event_confirmed", event)
+
+
 	#if _velocity != null:
 		#var local_velocity = _velocity
 		#_velocity = null
