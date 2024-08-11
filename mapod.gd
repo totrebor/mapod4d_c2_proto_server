@@ -54,7 +54,7 @@ func _process(_delta):
 	pass # Replace with function body.
 
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	if !thrust_event_buffer.is_empty():
 		var current_event = thrust_event_buffer.get_event()
 		var data_input = MPEventBuilder.gain_input(current_event)
@@ -63,13 +63,11 @@ func _physics_process(delta):
 		var speed = direction * defaultSpeed
 		var space = speed * thrust_time
 		move_and_collide(space)
-		var event = {
-			"T": current_event["T"],
-			"ME": "position",
-			"input": position
-		}
+		var mp_event = MPEventBuilder.build_drone_confirm_thrust(position)
+		MPEventBuilder.set_tick(
+			MPEventBuilder.gain_tick(current_event), mp_event)
 		# send position event to player
-		emit_signal("mapod_event_confirmed", event)
+		emit_signal("mapod_event_confirmed", mp_event)
 
 
 	#if _velocity != null:

@@ -79,11 +79,11 @@ func _ready():
 			_max_peer_delay_ms + SERVER_ELAB_TIME_MS) / 1000.00
 	print("_max_peer_delay_ms " + str(_max_peer_delay_ms))
 	print("_server_send_timer_sec " + str(_server_send_timer_sec))
-
+	# PROVA DI CAMBIAMENTO
+	# originale _events_buffer = MapodInputBuffer.new(1000)
+	_events_buffer = MapodEventList.new(1000)
 	var error = peer.create_server(PORT)
 	print(error)
-	# where can we call free ?
-	_events_buffer = MapodInputBuffer.new(1000)
 	multiplayer.multiplayer_peer = peer
 	multiplayer.peer_connected.connect(_on_peer_connect)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnect)
@@ -152,6 +152,7 @@ func start_game(peer_id, _auth_token):
 		"position": player_node.get_mapod_position()
 	}
 	player_node.mapod_position_updated.connect(_on_mapod_position_updated)
+	player_node.mapod_event_confirmed.connect(_on_mapod_event_confirmed)
 	ready_to_go.rpc_id(peer_id, peer_id)
 
 
@@ -173,6 +174,7 @@ func ticks_sync(_client_tick_rpc, _server_tick_rpc):
 	pass
 
 
+## event received from remote player
 @rpc("any_peer", "call_remote", "reliable")
 func send_player_event(_peer_id, event):
 	print("send_player_event")
@@ -188,8 +190,14 @@ func send_player_event(_peer_id, event):
 				" event_tick " + str(event.T) +
 				" diff " + str(_current_tick - event.T) +
 				" latency_peer " +  str(event.L))
-		_events_buffer.push(event, last_tick)
+		_events_buffer.push_c(event, last_tick)
 		_events_buffer.print()
+
+
+## confirm an event to the remopte player
+@rpc("authority", "call_remote", "reliable")
+func confirm_player_event(event):
+	pass
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -203,6 +211,13 @@ func send_metaverse_status(_metaverese_status_rpc):
 
 
 # ----- private methods
+
+func _get_player_node_from_peer_id(peer_id):
+	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
+	var player_node =  get_node_or_null(player_node_name)
+	return player_node
+
+
 func _on_peer_connect(peer_id):
 	print("connect " + str(peer_id))
 	server_name.rpc_id(peer_id, peer_id, "MAPOD4D server")
@@ -214,6 +229,7 @@ func _on_peer_disconnect(peer_id):
 	$PlayerSpawnerArea.kill(peer_id)
 
 
+## roba vecchia da vedere
 func _on_mapod_position_updated(peer_id):
 	print("_on_mapod_position_updated")
 	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
@@ -221,6 +237,12 @@ func _on_mapod_position_updated(peer_id):
 	_metaverse_status.drones[str(peer_id)] = {
 		"position": player_node.get_mapod_position()
 	}
+
+
+## send to remote player confirmed end of event
+func _on_mapod_event_confirmed(peer_id: int, mp_event):
+	print("_on_mapod_event_confirmed ", peer_id, " ", mp_event)
+	confirm_player_event.rpc_id(peer_id, mp_event)
 
 
 func _old_elab_tick(current_tick):
@@ -234,20 +256,20 @@ func _old_elab_tick(current_tick):
 
 func _elab_tick(current_tick):
 	if current_tick > _max_peer_delay_ms:
-		var mp_event = _events_buffer.pop_single()
+		var mp_event = _events_buffer.get_event_rm()
 		if mp_event != null:
 			if MPEventBuilder.is_drone(mp_event):
 				drone_event(mp_event)
 
 
-# push drone event in the dcorrect player
+# push drone event in the correct player
 func drone_event(mp_event):
 	print("drone_event " + str(mp_event))
 	var player_node_name = (
 			"PlayerSpawnerArea/" + MPEventBuilder.gain_peer_id(mp_event))
 	var player_node = get_node_or_null(player_node_name)
 	if player_node != null:
-		if MPEventBuilder.is_drone_trust(mp_event):
+		if MPEventBuilder.is_drone_thrust(mp_event):
 			player_node.push_thrust_event(mp_event)
 
 

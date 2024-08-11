@@ -16,7 +16,7 @@ extends Node3D
 # ----- signals
 # old
 signal mapod_position_updated(_peer_id)
-signal mapod_event_confirmed(mp_event)
+signal mapod_event_confirmed(peer_id: int, mp_event)
 # new
 
 # ----- enums
@@ -94,7 +94,9 @@ func _on_position_updated():
 	print("position_updated")
 	emit_signal("mapod_position_updated", self.name)
 
-
+# received from MAPOD when the movement is at the end
 func _on_mapod_event_confirmed(mp_event):
-	print("position_updated " + str(mp_event))
-	# MANDARE AL CLIENT
+	print("_on_mapod_event_confirmed ", mp_event)
+	## emit signal at the and of mp_event
+	mapod_event_confirmed.emit(int(str(get_name())), mp_event)
+
