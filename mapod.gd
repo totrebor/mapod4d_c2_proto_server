@@ -44,8 +44,8 @@ var _velocity = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	thrust_event_buffer = MapodEventBuffer.new(1000)
-	rotate_event_buffer = MapodEventBuffer.new(1000)
+	thrust_event_buffer = MapodEventList.new(1000)
+	rotate_event_buffer = MapodEventList.new(1000)
 
 # ----- remaining built-in virtual methods
 

@@ -194,9 +194,9 @@ func send_player_event(_peer_id, event):
 		_events_buffer.print()
 
 
-## confirm an event to the remopte player
+## confirm an event to the remote player
 @rpc("authority", "call_remote", "reliable")
-func confirm_player_event(event):
+func confirm_player_event(_mp_event):
 	pass
 
 

@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://rrjvfd5hlge8"]
+
+[ext_resource type="Script" path="res://node.gd" id="1_56qse"]
+[ext_resource type="PackedScene" uid="uid://cjl8jfokl80fg" path="res://player_spawner_area.tscn" id="2_me1wg"]
+
+[node name="Mapod4dMain" type="Node"]
+script = ExtResource("1_56qse")
+
+[node name="PlayerSpawnerArea" parent="." instance=ExtResource("2_me1wg")]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://player.tscn")
+spawn_path = NodePath("../PlayerSpawnerArea")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0.217822, -11.7962)
+current = true

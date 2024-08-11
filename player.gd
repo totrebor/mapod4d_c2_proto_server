@@ -81,7 +81,7 @@ func setup_multiplayer(_player_id_rpc):
 
 
 func push_thrust_event(mapod_event):
-	_mapod.thrust_event_buffer.push(mapod_event, 0)
+	_mapod.thrust_event_buffer.push_c(mapod_event, 0)
 
 
 func get_mapod_position():
