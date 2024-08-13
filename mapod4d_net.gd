@@ -19,13 +19,16 @@ extends Node
 # ----- enums
 
 # ----- constants
+const PORT = 9999
+const MAX_PEER_DELAY_MS = 100
+const SERVER_ELAB_TIME_MS = 0
 
 # ----- exported variables
 
 # ----- public variables
 
 # ----- private variables
-
+var _playerSpawnerArea = null
 
 # ----- onready variables private variables
 @onready var _metaverse_status = {
@@ -38,11 +41,16 @@ extends Node
 	'drones': {
 	}
 }
+@onready var _metaverese_last_hash = null
 @onready var _current_tick = 0
 # max peer latency
 @onready var _max_peer_delay_ms = 0
 # buffer of events received
 @onready var _events_buffer = MapodEventList.new(30000)
+# send status interval 
+@onready var _server_send_timer_sec = 0
+# server peer
+@onready var _peer = ENetMultiplayerPeer.new()
 
 # ----- optional built-in virtual _init method
 
@@ -58,7 +66,45 @@ func _ready():
 func _process(_delta):
 	pass # Replace with function body.
 
+
+# Called every 16,6666 ms
+func _physics_process(delta):
+	_current_tick = Time.get_ticks_msec() - (delta + _server_send_timer_sec)
+	_elab_tick(_current_tick)
+
+
 # ----- public methods
+func start(playerSpawnerArea):
+	_playerSpawnerArea = playerSpawnerArea
+	_max_peer_delay_ms = MAX_PEER_DELAY_MS
+	_server_send_timer_sec = (
+			_max_peer_delay_ms + SERVER_ELAB_TIME_MS) / 1000.00
+	print("_max_peer_delay_ms " + str(_max_peer_delay_ms))
+	print("_server_send_timer_sec " + str(_server_send_timer_sec))
+	# PROVA DI CAMBIAMENTO
+	# originale _events_buffer = MapodInputBuffer.new(1000)
+	_events_buffer = MapodEventList.new(1000)
+	var error = _peer.create_server(PORT)
+	print(error)
+	multiplayer.multiplayer_peer = _peer
+	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+	var sync_timer = Timer.new()
+	add_child(sync_timer)
+	sync_timer.timeout.connect(func():
+		var current_tick = Time.get_ticks_msec()
+		var current_hash = _metaverse_status.hash()
+		if _metaverese_last_hash != current_hash:
+			_metaverese_last_hash = current_hash
+			var metaverse_status = _metaverse_status.duplicate(true)
+			metaverse_status.tick = current_tick
+			send_metaverse_status.rpc(metaverse_status)
+	)
+	sync_timer.start(_server_send_timer_sec)
+	print("READY")
+	for pippo in range (0, 3):
+		print(3 - pippo - 1)
+
 
 ## name server side
 @rpc("authority", "call_remote", "unreliable")
@@ -90,9 +136,8 @@ func auth_confirmed(_peer_id_rpc, _auth_token_rpc):
 @rpc("any_peer", "call_remote")
 func start_game(peer_id, _auth_token):
 	print("start_game " + str(peer_id))
-	$PlayerSpawnerArea.spawn(peer_id)
-	var player_node_name = "PlayerSpawnerArea/" + str(peer_id)
-	var player_node = get_node(player_node_name)
+	_playerSpawnerArea.spawn(peer_id)
+	var player_node = _get_player_node_or_null(peer_id)
 	_metaverse_status.drones[str(peer_id)] = {
 		"position": player_node.get_mapod_position()
 	}
@@ -160,8 +205,43 @@ func send_metaverse_status(_metaverese_status_rpc):
 
 
 # ----- private methods
+func _get_player_node_or_null(peer_id):
+	var player_node_name = "/root/Mapod4dMain/PlayerSpawnerArea/" + str(peer_id)
+	var player_node = get_node_or_null(player_node_name)
+	return player_node
+
+
+func _elab_tick(current_tick):
+	if current_tick > _max_peer_delay_ms:
+		var mp_event = _events_buffer.get_event_rm()
+		if mp_event != null:
+			if MPEventBuilder.is_drone(mp_event):
+				_drone_event(mp_event)
+
+
+# push drone event in the correct player
+func _drone_event(mp_event):
+	print("drone_event " + str(mp_event))
+	var peer_id = MPEventBuilder.gain_peer_id(mp_event)
+	var player_node = _get_player_node_or_null(peer_id)
+	if player_node != null:
+		if MPEventBuilder.is_drone_thrust(mp_event):
+			player_node.push_thrust_event(mp_event)
+
+
 ## send to remote player confirmed end of event
 func _on_mapod_event_confirmed(peer_id: int, mp_event):
 	print("_on_mapod_event_confirmed ", peer_id, " ", mp_event)
 	confirm_player_event.rpc_id(peer_id, mp_event)
+
+
+func _on_peer_connected(peer_id):
+	print("connect " + str(peer_id))
+	server_name.rpc_id(peer_id, peer_id, "MAPOD4D server")
+
+
+func _on_peer_disconnected(peer_id):
+	print("disconnect " + str(peer_id))
+	_metaverse_status.erase(str(peer_id))
+	_playerSpawnerArea.kill(peer_id)
 
