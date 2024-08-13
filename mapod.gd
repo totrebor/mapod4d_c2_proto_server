@@ -56,7 +56,7 @@ func _process(_delta):
 
 func _physics_process(_delta):
 	if !thrust_event_buffer.is_empty():
-		var current_event = thrust_event_buffer.get_event()
+		var current_event = thrust_event_buffer.get_event_rm()
 		var data_input = MPEventBuilder.gain_input(current_event)
 		var thrust_time = 0.4
 		var direction = transform.basis * data_input.v.d
@@ -68,6 +68,9 @@ func _physics_process(_delta):
 			MPEventBuilder.gain_tick(current_event), mp_event)
 		# send position event to player
 		emit_signal("mapod_event_confirmed", mp_event)
+	
+	if !rotate_event_buffer.is_empty():
+		pass
 
 
 	#if _velocity != null:

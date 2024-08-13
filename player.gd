@@ -80,8 +80,12 @@ func setup_multiplayer(_player_id_rpc):
 	#pass
 
 
-func push_thrust_event(mapod_event):
-	_mapod.thrust_event_buffer.push_c(mapod_event, 0)
+func push_thrust_event(mp_event):
+	_mapod.thrust_event_buffer.push_c(mp_event, 0)
+
+
+func push_rotate_event(mp_event):
+	_mapod.thrust_event_buffer.push_c(mp_event, 0)
 
 
 func get_mapod_position():
@@ -93,6 +97,7 @@ func get_mapod_position():
 func _on_position_updated():
 	print("position_updated")
 	emit_signal("mapod_position_updated", self.name)
+
 
 # received from MAPOD when the movement is at the end
 func _on_mapod_event_confirmed(mp_event):
