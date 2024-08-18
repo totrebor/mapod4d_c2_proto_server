@@ -266,4 +266,3 @@ func _physics_process(delta):
 	#if player_node != null:
 		#if MPEventBuilder.is_drone_thrust(mp_event):
 			#player_node.push_thrust_event(mp_event)
-

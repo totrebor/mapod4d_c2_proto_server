@@ -42,6 +42,7 @@ var _playerSpawnerArea = null
 	}
 }
 @onready var _metaverese_last_hash = null
+@onready var _flag_started = false
 @onready var _current_tick = 0
 # max peer latency
 @onready var _max_peer_delay_ms = 0
@@ -69,8 +70,9 @@ func _process(_delta):
 
 # Called every 16,6666 ms
 func _physics_process(delta):
-	_current_tick = Time.get_ticks_msec() - (delta + _server_send_timer_sec)
-	_elab_tick(_current_tick)
+	if _flag_started:
+		_current_tick = Time.get_ticks_msec() - (delta + _server_send_timer_sec)
+		_elab_tick(_current_tick)
 
 
 # ----- public methods
@@ -104,7 +106,7 @@ func start(playerSpawnerArea):
 	print("READY")
 	for pippo in range (0, 3):
 		print(3 - pippo - 1)
-
+	_flag_started = true
 
 ## name server side
 @rpc("authority", "call_remote", "unreliable")
@@ -244,4 +246,3 @@ func _on_peer_disconnected(peer_id):
 	print("disconnect " + str(peer_id))
 	_metaverse_status.erase(str(peer_id))
 	_playerSpawnerArea.kill(peer_id)
-

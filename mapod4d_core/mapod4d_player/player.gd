@@ -104,4 +104,3 @@ func _on_mapod_event_confirmed(mp_event):
 	print("_on_mapod_event_confirmed ", mp_event)
 	## emit signal at the and of mp_event
 	mapod_event_confirmed.emit(int(str(get_name())), mp_event)
-

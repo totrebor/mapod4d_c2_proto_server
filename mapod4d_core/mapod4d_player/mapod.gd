@@ -24,8 +24,7 @@ signal mapod_event_confirmed(event)
 # ----- constants
 
 # ----- exported variables
-@export var mouse_sensitivity = 0.01
-@export var defaultSpeed = 1.0
+@export var defaultSpeed = 1.8
 
 # ----- public variables
 var thrust_event_buffer
@@ -127,8 +126,3 @@ func dw_thrust():
 
 
 # ----- private methods
-
-
-
-
-

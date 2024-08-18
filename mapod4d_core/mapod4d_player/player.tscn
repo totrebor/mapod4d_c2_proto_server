@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://dpd4juiyv3vls"]
 
-[ext_resource type="Script" path="res://mapod.gd" id="1_6ffme"]
-[ext_resource type="Script" path="res://player.gd" id="1_ogjyb"]
+[ext_resource type="Script" path="res://mapod4d_core/mapod4d_player/mapod.gd" id="1_6ffme"]
+[ext_resource type="Script" path="res://mapod4d_core/mapod4d_player/player.gd" id="1_ogjyb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a3dta"]
 albedo_color = Color(0, 0, 1, 1)
